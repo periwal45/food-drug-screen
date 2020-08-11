@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-opendir(DIR, "/media/hdd/BugScreen/") || die $!;
+opendir(DIR, "/BugScreen/") || die $!;
 my @dir = readdir(DIR);
 
 foreach my $f1(@dir){
@@ -12,7 +12,7 @@ foreach my $f1(@dir){
 
 	my $name1 = $1;
 
-	opendir(NT, "/media/hdd/BugScreen/$f1") || die $!;
+	opendir(NT, "/BugScreen/$f1") || die $!;
 	my @contents = readdir(NT);
 
 	foreach my $f2(@contents){
@@ -21,7 +21,7 @@ foreach my $f1(@dir){
 
 		my $name2 = $1;
 
-		opendir(REP, "/media/hdd/BugScreen/$f1/$f2") || die $!;
+		opendir(REP, "/BugScreen/$f1/$f2") || die $!;
 		my @rep = readdir(REP);
 
 		foreach my $f3(@rep){
@@ -30,7 +30,7 @@ foreach my $f1(@dir){
 
 		my $name3 = $1;
 
-		my $file = "/media/hdd/BugScreen/$f1/$f2/$f3";
+		my $file = "/BugScreen/$f1/$f2/$f3";
 		open my $fh, $file or die $!;
 	
 		my $outfile = "$name1"."_"."$name2"."_"."$name3".".tab";
@@ -70,7 +70,7 @@ foreach my $f1(@dir){
 
 #Below code removes the Temperature column from all files and formats time column
 
-opendir(DIR, "/media/hdd/BugScreen/Data_analysis") || die $!;
+opendir(DIR, "/BugScreen/Data_analysis") || die $!;
 my @dd = readdir(DIR);
 
 foreach my $file(@dd){
