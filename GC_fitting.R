@@ -1,11 +1,14 @@
-setwd("/GrowthCurver/")
+setwd("/Users/vinitaperiwal/GrowthCurver/")
 library(dplyr)
 library(tibble)
 library(reshape2)
 library(growthcurver)
 
+# source the script with functions
+source("/Users/vinitaperiwal/GrowthCurver/Scripts/Functions.R")
+
 #read all files with .tab extension
-file.names <- list.files(path = '/GrowthCurver/', recursive = TRUE, pattern = "\\.tab$") #recursive reads through all subfolders and files
+file.names <- list.files(path = '/Users/vinitaperiwal/GrowthCurver/', recursive = TRUE, pattern = "\\.tab$") #recursive reads through all subfolders and files
 file.names
 
 #loop for each .tab file, fits logistic curve, annotates
@@ -36,12 +39,12 @@ for(i in 1:length(file.names)){
 
 #merge all replicates of a bug
 # Merge files across all replicates of a strain (.annot files)
-dir.names<-list.dirs(path = '/GrowthCurver', recursive = FALSE)
+dir.names<-list.dirs(path = '/Users/vinitaperiwal/GrowthCurver', recursive = FALSE)
 dir.names
 
 for(d in 1:length(dir.names)){
   
-  if(str_detect(dir.names[d], "/GrowthCurver/NT5")){
+  if(str_detect(dir.names[d], "/Users/vinitaperiwal/GrowthCurver/NT5")){
     
     all_rep<-do.call(rbind, lapply(a<-list.files(path=dir.names[d], pattern="\\.annot$", full.names = TRUE), function(i){
       read.table(i,header=TRUE, sep="\t", stringsAsFactors = FALSE)}))
@@ -65,7 +68,7 @@ fitted_values<-data.frame(stringsAsFactors = FALSE)
 gc_fit_params<-data.frame(stringsAsFactors = FALSE)
 
 #read all files with .tab extension
-file.merged<-list.files(path = '/GrowthCurver/', pattern = ".merged$") #recursive reads through all subfolders and files
+file.merged<-list.files(path = '/Users/vinitaperiwal/GrowthCurver/', pattern = ".merged$") #recursive reads through all subfolders and files
 file.merged
 
 #loop for each .tab file, fits logistic curve, annotates
@@ -96,7 +99,7 @@ for(j in 1:length(file.merged)){
   head(Z)
   nrow(Z)
   
-  write.table(Z, file = paste0("/GrowthCurver/trim_points/",in_file,".trim"), sep = "\t", quote = FALSE, row.names = FALSE)
+  write.table(Z, file = paste0("/Users/vinitaperiwal/GrowthCurver/trim_points/",in_file,".trim"), sep = "\t", quote = FALSE, row.names = FALSE)
   
   unique_rep<-unique(Z$Replicate_no)
   unique_rep
@@ -117,7 +120,7 @@ for(j in 1:length(file.merged)){
         plate_dat<-dat %>% filter(Replicate_no == unique_rep[k])
         plate_dat
         
-        if (dim(plate_dat)[1] != 0){ #if missing replicate 
+        if (dim(plate_dat)[1] != 0){ #if missing replicate eg NT5022, plate16 has no rep1
           
           bug<-plate_dat[1,1]
           bug
@@ -127,6 +130,9 @@ for(j in 1:length(file.merged)){
           plate
           drug<-plate_dat[1,4]
           drug
+          
+          #plot_file<-paste0(ID,"_",rep,"_",plate,"_",drug)
+          #plot_file
           
           data<-plate_dat[,-(1:4)]
           data
@@ -149,6 +155,8 @@ for(j in 1:length(file.merged)){
               
               #each time create a new variable for each well
               gc_fit<-SummarizeGrowth(data_t = current_well[,"time"], data_n = current_well[,col_name])
+              #saveRDS(gc_fit, file = paste0("/Users/vinitaperiwal/GrowthCurver/models/",ID,"_",rep,"_",plate,"_",drug,"_",col_name,".rds"))
+              
               gc_fit
               
               #create a data frame of raw values and fitted values
@@ -197,10 +205,10 @@ for(j in 1:length(file.merged)){
 
 
 head(fitted_values)
-nrow(fitted_values) 
+nrow(fitted_values) #1,292,544
 
-head(gc_fit_params)
-nrow(gc_fit_params) #should be equal to number of wells
+View(gc_fit_params)
+nrow(gc_fit_params) #should be equal to number of wells: 53,184
 
 write.table(fitted_values, file = "/Users/vinitaperiwal/GrowthCurver/GC_fitted_model_values", sep = "\t", quote = FALSE, row.names = FALSE)
 write.table(gc_fit_params, file = "/Users/vinitaperiwal/GrowthCurver/GC_fit_params", sep = "\t", quote = FALSE, row.names = FALSE)
