@@ -477,7 +477,7 @@ write.table(bliss_annot, file = "/Users/vinitaperiwal/GrowthCurver/Figures/bliss
 
 #statistical determination of synergy/antagonism
 
-short_blissannot<-bliss_annot[,c(1:8,11,15,19,23)]
+short_blissannot<-bliss_annot[,c(1:8,11,15,19,20,21,23)]
 View(short_blissannot)
 nrow(short_blissannot) #38,570
 
@@ -487,8 +487,12 @@ A<-short_blissannot %>% dplyr::group_by(Bug_ID,Plate_no,Drug_name,well) %>%
          n3 = length(SFaq), lSFaq = log(SFaq), y3=mean(lSFaq), s3=var(lSFaq)*(n3-1),
          sy=s1+s2+s3, dft=n1+n2+n3-3, denf=1/n1+1/n2+1/n3,
          tss=(y1+y2-y3)/sqrt(sum(sy)/dft)/denf,
-         bliss=
-           pv=2*(1-pt(abs(tss),df=dft)),
+         pv=2*(1-pt(abs(tss),df=dft)),
          pvP=1-pt(tss,df=dft)) #n - no of observations (replicates), sy - total sum of squares, dft,denf - df, tss - t-statistic, pv - p-value for Bliss independence hypothesis, pvP - One-sided p-value
 
 View(A)
+
+B<-A %>% filter(pv<0.05)
+nrow(B)
+
+View(B)
