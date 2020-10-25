@@ -502,15 +502,24 @@ A_filtered<-A %>% filter(lSFa != "-Inf" & lSFq != "-Inf" & lSFaq != "-Inf") %>%
 nrow(A_filtered) #38,473
 View(A_filtered)
 
-B<-A_filtered %>% filter(pv<0.05)
-nrow(B) #223
+B<-A_filtered %>% filter(pvP<0.01)
+nrow(B) #at cut-off (0.05) - 624, cut-off (0.01) - 112
 
+write.table(B, file = "/Users/vinitaperiwal/GrowthCurver/Figures/bliss_stat_sign", sep = "\t", quote = FALSE, row.names = FALSE)
 View(B)
 
+C<-B[,c(1:4,6:8,14,15,36)]
+unique_C<-unique(C)
+nrow(unique_C)
+length(unique(unique_C$Product.name))
+length(unique(unique_C$Drug_name))
 
-B %>% 
-  ggplot(aes(x=bliss_score,y=Product.name)) + geom_boxplot(aes(fill=Sp_short), lwd=0.3) + theme_bw() +
-  th+ theme(axis.text.x = element_text(angle = 90,hjust = 1), axis.ticks = element_blank(), panel.grid = element_blank()) + 
-  scale_fill_d3() + scale_y_discrete(name = "Food compound") + facet_grid(~Drug_name, scales = "free")
-
+#strong synergy
+CairoSVG(file=paste("/Users/vinitaperiwal/GrowthCurver/Figures/syn0.01_heatmap.svg", sep = ""), width = 6.5, height = 6.5, bg = "white")
+C %>%  
+  ggplot(aes(x=Sp_short,y=Product.name)) + geom_tile(aes(fill=pvP)) + theme_bw() +
+  th + theme(axis.text.x = element_text(angle = 90,hjust = 1), axis.ticks = element_blank(), panel.grid = element_blank()) + 
+  scale_fill_viridis_b() + scale_y_discrete(name = "Food compound") + scale_x_discrete(name = "") +
+  facet_grid(~Drug_name, scales = "free")
+dev.off()
 
