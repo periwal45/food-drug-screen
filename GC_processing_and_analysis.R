@@ -452,8 +452,8 @@ colnames(merge_SFaq_SFa_SFq)<-c("Bug_ID","Replicate_no","Plate_no","Drug_name",
 head(merge_SFaq_SFa_SFq)
 
 # calculate bliss scores
-#bliss<-merge_SFaq_SFa_SFq %>% mutate(bliss_ex = SFa*SFq, bliss_score = SFaq-bliss_ex, label = ifelse(SFaq < bliss_ex, "synergy","antagonism"))
-bliss<-merge_SFaq_SFa_SFq %>% mutate(bliss_ex = SFa*SFq, bliss_score = SFaq-bliss_ex)
+bliss<-merge_SFaq_SFa_SFq %>% mutate(bliss_ex = SFa*SFq, bliss_score = SFaq-bliss_ex, label = ifelse(SFaq < bliss_ex, "synergy","antagonism"))
+#bliss<-merge_SFaq_SFa_SFq %>% mutate(bliss_ex = SFa*SFq, bliss_score = SFaq-bliss_ex)
 head(bliss)
 
 write.table(bliss, file = "/Users/vinitaperiwal/GrowthCurver/Figures/bliss_scores", sep = "\t", quote = FALSE, row.names = FALSE)
@@ -477,22 +477,40 @@ write.table(bliss_annot, file = "/Users/vinitaperiwal/GrowthCurver/Figures/bliss
 
 #statistical determination of synergy/antagonism
 
-short_blissannot<-bliss_annot[,c(1:8,11,15,19,20,21,23)]
+short_blissannot<-bliss_annot[,c(1:8,11,15,19,20,21,22,24)]
 View(short_blissannot)
 nrow(short_blissannot) #38,570
 
 A<-short_blissannot %>% dplyr::group_by(Bug_ID,Plate_no,Drug_name,well) %>% 
-  mutate(n1 = length(SFa), lSFa = log(SFa), y1=mean(lSFa), s1=var(lSFa)*(n1-1),
-         n2 = length(SFq), lSFq = log(SFq), y2=mean(lSFq), s2=var(lSFq)*(n2-1),
-         n3 = length(SFaq), lSFaq = log(SFaq), y3=mean(lSFaq), s3=var(lSFaq)*(n3-1),
+  mutate(lSFa = log(SFa),lSFq = log(SFq), lSFaq = log(SFaq))
+
+nrow(A) #38,570
+
+A_filtered<-A %>% filter(lSFa != "-Inf" & lSFq != "-Inf" & lSFaq != "-Inf") %>% 
+  dplyr::group_by(Bug_ID,Plate_no,Drug_name,well) %>% 
+  mutate(n1 = length(SFa), y1=mean(lSFa), s1=var(lSFa)*(n1-1),
+         n2 = length(SFq), y2=mean(lSFq), s2=var(lSFq)*(n2-1),
+         n3 = length(SFaq), y3=mean(lSFaq), s3=var(lSFaq)*(n3-1),
          sy=s1+s2+s3, dft=n1+n2+n3-3, denf=1/n1+1/n2+1/n3,
+         lbliss=y1+y2-y3,
+         expbliss=exp(y1+y2-y3),
+         syn_percent=(expbliss-1)*100,
          tss=(y1+y2-y3)/sqrt(sum(sy)/dft)/denf,
          pv=2*(1-pt(abs(tss),df=dft)),
          pvP=1-pt(tss,df=dft)) #n - no of observations (replicates), sy - total sum of squares, dft,denf - df, tss - t-statistic, pv - p-value for Bliss independence hypothesis, pvP - One-sided p-value
 
-View(A)
+nrow(A_filtered) #38,473
+View(A_filtered)
 
-B<-A %>% filter(pv<0.05)
-nrow(B)
+B<-A_filtered %>% filter(pv<0.05)
+nrow(B) #223
 
 View(B)
+
+
+B %>% 
+  ggplot(aes(x=bliss_score,y=Product.name)) + geom_boxplot(aes(fill=Sp_short), lwd=0.3) + theme_bw() +
+  th+ theme(axis.text.x = element_text(angle = 90,hjust = 1), axis.ticks = element_blank(), panel.grid = element_blank()) + 
+  scale_fill_d3() + scale_y_discrete(name = "Food compound") + facet_grid(~Drug_name, scales = "free")
+
+
