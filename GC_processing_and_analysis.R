@@ -452,7 +452,7 @@ colnames(merge_SFaq_SFa_SFq)<-c("Bug_ID","Replicate_no","Plate_no","Drug_name",
 head(merge_SFaq_SFa_SFq)
 
 # calculate bliss scores
-bliss<-merge_SFaq_SFa_SFq %>% mutate(bliss_ex = SFa*SFq, bliss_score = SFaq-bliss_ex, label = ifelse(SFaq < bliss_ex, "synergy","antagonism"))
+bliss<-merge_SFaq_SFa_SFq %>% mutate(bliss_ex = SFa*SFq, bliss_score = bliss_ex-SFaq, label = ifelse(SFaq < bliss_ex, "synergy","antagonism"))
 #bliss<-merge_SFaq_SFa_SFq %>% mutate(bliss_ex = SFa*SFq, bliss_score = SFaq-bliss_ex)
 head(bliss)
 
@@ -474,6 +474,13 @@ View(bliss_annot)
 nrow(bliss_annot) #38,570
 
 write.table(bliss_annot, file = "/Users/vinitaperiwal/GrowthCurver/Figures/bliss_annot", sep = "\t", quote = FALSE, row.names = FALSE)
+
+CairoSVG(file="/Users/vinitaperiwal/GrowthCurver/Figures/bliss_density.svg", width = 9, height = 4, bg = "white")
+bliss_annot %>% ggplot(aes(bliss_score)) + geom_density(aes(fill=Drug_name, color=Drug_name), alpha=0.8) +
+  facet_wrap("Sp_short", nrow = 3, scales = "free") + theme_bw() +
+  scale_fill_jama() + scale_color_jama() + th
+dev.off()
+
 
 #statistical determination of synergy/antagonism
 
@@ -499,9 +506,15 @@ A_filtered<-A %>% filter(lSFa != "-Inf" & lSFq != "-Inf" & lSFaq != "-Inf") %>%
          pv=2*(1-pt(abs(tss),df=dft)),
          pvP=1-pt(tss,df=dft)) #n - no of observations (replicates), sy - total sum of squares, dft,denf - df, tss - t-statistic, pv - p-value for Bliss independence hypothesis, pvP - One-sided p-value
 
+#' Notes:
+#' s1=variance is multiplied by n-1 to get sum of squared distances
+#' 
+#' 
+
 nrow(A_filtered) #38,473
 View(A_filtered)
 
+write.table(A_filtered, file = "/Users/vinitaperiwal/GrowthCurver/Figures/bliss_stats", sep = "\t", quote = FALSE, row.names = FALSE)
 B<-A_filtered %>% filter(pvP<0.01)
 nrow(B) #at cut-off (0.05) - 624, cut-off (0.01) - 112
 
