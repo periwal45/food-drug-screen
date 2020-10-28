@@ -234,10 +234,10 @@ for(i in 1:length(bugs)){
 
 #individual well
 
-f<-fits %>% filter(Bug_ID == 'NT5019', col_name %in% c('H12','A5'), Plate_no %in% c('plate12','plate2','plate8'), Drug_name %in% c('control','promazine','felodipine'))
+f<-fits %>% filter(Bug_ID == 'NT5083', col_name %in% c('H12','F2'), Plate_no %in% c('plate12','plate6'), Drug_name %in% c('control','omeprazole'))
 head(f)
 
-CairoSVG(file=paste("/Users/vinitaperiwal/GrowthCurver/Figures/pcop_A5_syn.svg", sep = ""), width = 6, height = 4, bg = "white")
+CairoSVG(file=paste("/Users/vinitaperiwal/GrowthCurver/Figures/cdiff_F2.svg", sep = ""), width = 6, height = 4, bg = "white")
 f %>% dplyr::group_by(Bug_ID,Plate_no,col_name) %>%
   ggplot(aes(x=time, y=fitted,group=Replicate_no)) + geom_line(aes(color=Replicate_no)) + 
   geom_point(aes(y=OD,color=Replicate_no), size=0.001) + facet_wrap(c("col_name","Drug_name")) + scale_color_nejm() + 

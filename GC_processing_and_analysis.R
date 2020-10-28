@@ -193,7 +193,7 @@ ncol(ref_all_wells) #11
 
 #read all normalized aucs
 final_normAUCs<-read.table(file = "/Users/vinitaperiwal/GrowthCurver/Figures/final_normAUCs", sep = "\t", header = TRUE)
-head(final_normAUCs)
+View(final_normAUCs)
 nrow(final_normAUCs) #46,752
 
 data_foodplates<-final_normAUCs %>% filter(Drug_name == 'control')
@@ -267,7 +267,7 @@ nrow(combined_pval) #2,496
 # significant wells
 hits<-combined_pval %>% filter(combined_pv < 0.05)
 head(hits)
-nrow(hits) #250
+head(hits) #250
 
 CairoSVG(file=paste("/Users/vinitaperiwal/GrowthCurver/Figures/pval_combined.svg", sep = ""), width = 4, height = 2, bg = "white")
 hits %>% ggplot(aes(combined_pv)) + geom_histogram(aes(fill=Plate_no)) + 
@@ -499,12 +499,12 @@ A_filtered<-A %>% filter(lSFa != "-Inf" & lSFq != "-Inf" & lSFaq != "-Inf") %>%
          n2 = length(SFq), y2=mean(lSFq), s2=var(lSFq)*(n2-1),
          n3 = length(SFaq), y3=mean(lSFaq), s3=var(lSFaq)*(n3-1),
          sy=s1+s2+s3, dft=n1+n2+n3-3, denf=1/n1+1/n2+1/n3,
-         lbliss=y1+y2-y3,
+         logt_mean_bliss=y1+y2-y3,
          expbliss=exp(y1+y2-y3),
-         syn_percent=(expbliss-1)*100,
+         syn_percent=(abs(expbliss)-1)*100,
          tss=(y1+y2-y3)/sqrt(sum(sy)/dft)/denf,
          pv=2*(1-pt(abs(tss),df=dft)),
-         pvP=1-pt(tss,df=dft)) #n - no of observations (replicates), sy - total sum of squares, dft,denf - df, tss - t-statistic, pv - p-value for Bliss independence hypothesis, pvP - One-sided p-value
+         pvP=1-pt(abs(tss),df=dft)) #n - no of observations (replicates), sy - total sum of squares, dft,denf - df, tss - t-statistic, pv - p-value for Bliss independence hypothesis, pvP - One-sided p-value
 
 #' Notes:
 #' s1=variance is multiplied by n-1 to get sum of squared distances
@@ -516,23 +516,24 @@ View(A_filtered)
 
 write.table(A_filtered, file = "/Users/vinitaperiwal/GrowthCurver/Figures/bliss_stats", sep = "\t", quote = FALSE, row.names = FALSE)
 B<-A_filtered %>% filter(pvP<0.01)
-nrow(B) #at cut-off (0.05) - 624, cut-off (0.01) - 112
+nrow(B) #at cut-off (0.05) - 660, cut-off (0.01) - 115
 
 write.table(B, file = "/Users/vinitaperiwal/GrowthCurver/Figures/bliss_stat_sign", sep = "\t", quote = FALSE, row.names = FALSE)
 View(B)
 
-C<-B[,c(1:4,6:8,14,15,36)]
+C<-B[,c(1:4,6:14,15,31:33,35,36)]
 unique_C<-unique(C)
 nrow(unique_C)
+View(unique_C)
 length(unique(unique_C$Product.name))
 length(unique(unique_C$Drug_name))
 
 #strong synergy
-CairoSVG(file=paste("/Users/vinitaperiwal/GrowthCurver/Figures/syn0.01_heatmap.svg", sep = ""), width = 6.5, height = 6.5, bg = "white")
-C %>%  
-  ggplot(aes(x=Sp_short,y=Product.name)) + geom_tile(aes(fill=pvP)) + theme_bw() +
-  th + theme(axis.text.x = element_text(angle = 90,hjust = 1), axis.ticks = element_blank(), panel.grid = element_blank()) + 
-  scale_fill_viridis_b() + scale_y_discrete(name = "Food compound") + scale_x_discrete(name = "") +
+CairoSVG(file=paste("/Users/vinitaperiwal/GrowthCurver/Figures/syn_ant_heatmap.svg", sep = ""), width = 6.5, height = 7, bg = "white")
+unique_C %>%
+  ggplot(aes(x=Sp_short,y=Product.name)) + geom_tile(aes(fill=label)) + theme_bw() +
+  th + theme(axis.text.x = element_text(angle = 90,hjust = 1),axis.ticks = element_blank(), panel.grid = element_blank()) + 
+  scale_fill_nejm() + scale_y_discrete(name = "Food compound") + scale_x_discrete(name = "") +
   facet_grid(~Drug_name, scales = "free")
 dev.off()
 
